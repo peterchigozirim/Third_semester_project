@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Register - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="index.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+					<a
+						href="login.html"
+						class="text-gray-700 hover:text-primary-600 transition"
+						>Already have an account?</a
+					>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Register Form -->
+		<div class="mx-auto px-4 py-16 container">
+			<div class="mx-auto p-8 max-w-2xl card">
+				<h1 class="mb-8 font-bold text-3xl text-center">Create Your Account</h1>
+
+				<form id="registerForm">
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>I am a:</label
+						>
+						<div class="flex gap-4">
+							<label class="flex items-center cursor-pointer">
+								<input
+									type="radio"
+									name="role"
+									value="eventee"
+									checked
+									class="mr-2" />
+								<span>Event Attendee</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input type="radio" name="role" value="creator" class="mr-2" />
+								<span>Event Creator</span>
+							</label>
+						</div>
+					</div>
+
+					<div class="gap-6 grid grid-cols-1 md:grid-cols-2 mb-6">
+						<div>
+							<label class="block mb-2 font-medium text-gray-700 text-sm"
+								>First Name</label
+							>
+							<input
+								type="text"
+								id="firstName"
+								required
+								class="input"
+								placeholder="John" />
+						</div>
+						<div>
+							<label class="block mb-2 font-medium text-gray-700 text-sm"
+								>Last Name</label
+							>
+							<input
+								type="text"
+								id="lastName"
+								required
+								class="input"
+								placeholder="Doe" />
+						</div>
+					</div>
+
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>Email</label
+						>
+						<input
+							type="email"
+							id="email"
+							required
+							class="input"
+							placeholder="your@email.com" />
+					</div>
+
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>Phone (Optional)</label
+						>
+						<input
+							type="tel"
+							id="phone"
+							class="input"
+							placeholder="+234 800 000 0000" />
+					</div>
+
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>Password</label
+						>
+						<input
+							type="password"
+							id="password"
+							required
+							class="input"
+							placeholder="••••••••"
+							minlength="8" />
+						<p class="mt-1 text-gray-500 text-xs">Minimum 8 characters</p>
+					</div>
+
+					<button
+						type="submit"
+						id="submitBtn"
+						class="py-3 w-full text-lg btn btn-primary">
+						Create Account
+					</button>
+				</form>
+
+				<p class="mt-6 text-gray-600 text-center">
+					Already have an account?
+					<a
+						href="login.html"
+						class="font-medium text-primary-600 hover:text-primary-700"
+						>Login here</a
+					>
+				</p>
+			</div>
+		</div>
+
+		<script src="js/config.js"></script>
+		<script src="js/main.js"></script>
+		<script src="js/auth.js"></script>
+		<script>
+			// Check for role parameter in URL
+			const urlParams = new URLSearchParams(window.location.search);
+			const roleParam = urlParams.get("role");
+			if (roleParam) {
+				document
+					.querySelector(`input[value="${roleParam}"]`)
+					?.setAttribute("checked", "checked");
+			}
+
+			const registerForm = document.getElementById("registerForm");
+			const submitBtn = document.getElementById("submitBtn");
+
+			registerForm.addEventListener("submit", async (e) => {
+				e.preventDefault();
+
+				const phoneInput = document.getElementById("phone");
+				const phone = phoneInput ? phoneInput.value.trim() : "";
+
+				const formData = {
+					role: document.querySelector('input[name="role"]:checked').value,
+					firstName: document.getElementById("firstName").value,
+					lastName: document.getElementById("lastName").value,
+					email: document.getElementById("email").value,
+					password: document.getElementById("password").value,
+				};
+
+				// Only add phone if it's not empty
+				if (phone) {
+					formData.phone = phone;
+				}
+
+				submitBtn.textContent = "Creating Account...";
+				submitBtn.disabled = true;
+
+				try {
+					const response = await apiCall(API_ENDPOINTS.register, {
+						method: "POST",
+						body: JSON.stringify(formData),
+					});
+
+					// Save token and user data
+					localStorage.setItem("token", response.data.token);
+					localStorage.setItem("user", JSON.stringify(response.data.user));
+
+					showToast("Account created successfully!", "success");
+
+					// Redirect based on role
+					setTimeout(() => {
+						if (formData.role === "creator") {
+							window.location.href = "dashboard.html";
+						} else {
+							window.location.href = "events.html";
+						}
+					}, 1000);
+				} catch (error) {
+					showToast(error.message || "Registration failed", "error");
+					submitBtn.textContent = "Create Account";
+					submitBtn.disabled = false;
+				}
+			});
+		</script>
+	</body>
+</html>

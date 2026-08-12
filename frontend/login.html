@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Login - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="index.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+					<a
+						href="register.html"
+						class="text-gray-700 hover:text-primary-600 transition"
+						>Don't have an account?</a
+					>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Login Form -->
+		<div class="mx-auto px-4 py-16 container">
+			<div class="mx-auto p-8 max-w-md card">
+				<h1 class="mb-8 font-bold text-3xl text-center">Welcome Back</h1>
+
+				<form id="loginForm">
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>Email</label
+						>
+						<input
+							type="email"
+							id="email"
+							required
+							class="input"
+							placeholder="your@email.com" />
+					</div>
+
+					<div class="mb-6">
+						<label class="block mb-2 font-medium text-gray-700 text-sm"
+							>Password</label
+						>
+						<input
+							type="password"
+							id="password"
+							required
+							class="input"
+							placeholder="••••••••" />
+					</div>
+
+					<button
+						type="submit"
+						id="submitBtn"
+						class="py-3 w-full text-lg btn btn-primary">
+						Login
+					</button>
+				</form>
+
+				<p class="mt-6 text-gray-600 text-center">
+					Don't have an account?
+					<a
+						href="register.html"
+						class="font-medium text-primary-600 hover:text-primary-700"
+						>Register here</a
+					>
+				</p>
+			</div>
+		</div>
+
+		<script src="js/config.js"></script>
+		<script src="js/main.js"></script>
+		<script src="js/auth.js"></script>
+		<script>
+			const loginForm = document.getElementById("loginForm");
+			const submitBtn = document.getElementById("submitBtn");
+
+			loginForm.addEventListener("submit", async (e) => {
+				e.preventDefault();
+
+				const email = document.getElementById("email").value;
+				const password = document.getElementById("password").value;
+
+				submitBtn.textContent = "Logging in...";
+				submitBtn.disabled = true;
+
+				try {
+					const response = await apiCall(API_ENDPOINTS.login, {
+						method: "POST",
+						body: JSON.stringify({ email, password }),
+					});
+
+					// Save token and user data
+					localStorage.setItem("token", response.data.token);
+					localStorage.setItem("user", JSON.stringify(response.data.user));
+
+					showToast("Login successful!", "success");
+
+					// Redirect based on role
+					setTimeout(() => {
+						const user = response.data.user;
+						if (user.role === "creator") {
+							window.location.href = "dashboard.html";
+						} else {
+							window.location.href = "events.html";
+						}
+					}, 1000);
+				} catch (error) {
+					showToast(error.message || "Login failed", "error");
+					submitBtn.textContent = "Login";
+					submitBtn.disabled = false;
+				}
+			});
+		</script>
+	</body>
+</html>

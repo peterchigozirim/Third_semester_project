@@ -1,0 +1,419 @@
+openapi: 3.0.0
+info:
+  title: Eventful API
+  description: Your passport to unforgettable moments - Event ticketing platform API
+  version: 1.0.0
+  contact:
+    email: support@eventful.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.eventful.com/api/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Events
+    description: Event management operations
+  - name: Tickets
+    description: Ticket purchase and management
+  - name: Payments
+    description: Payment processing with Paystack
+  - name: Analytics
+    description: Event and payment analytics
+  - name: Notifications
+    description: Event reminders and notifications
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        role:
+          type: string
+          enum: [creator, eventee]
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        venue:
+          type: string
+        address:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        ticket_price:
+          type: number
+        total_tickets:
+          type: integer
+        available_tickets:
+          type: integer
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - role
+                - firstName
+                - lastName
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                role:
+                  type: string
+                  enum: [creator, eventee]
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login successful
+        "401":
+          description: Invalid credentials
+
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get user profile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+        "401":
+          description: Unauthorized
+
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get all published events
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Events retrieved successfully
+
+    post:
+      tags:
+        - Events
+      summary: Create a new event (Creator only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - category
+                - venue
+                - address
+                - startDate
+                - endDate
+                - ticketPrice
+                - totalTickets
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                venue:
+                  type: string
+                address:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                ticketPrice:
+                  type: number
+                totalTickets:
+                  type: integer
+                imageUrl:
+                  type: string
+                reminderDays:
+                  type: integer
+                reminderHours:
+                  type: integer
+      responses:
+        "201":
+          description: Event created successfully
+        "403":
+          description: Forbidden
+
+  /events/{eventId}:
+    get:
+      tags:
+        - Events
+      summary: Get event details
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event retrieved successfully
+        "404":
+          description: Event not found
+
+  /events/{eventId}/share:
+    post:
+      tags:
+        - Events
+      summary: Share an event
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - platform
+              properties:
+                platform:
+                  type: string
+                  example: facebook
+      responses:
+        "200":
+          description: Event shared successfully
+
+  /payments/initiate:
+    post:
+      tags:
+        - Payments
+      summary: Initiate ticket payment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+              properties:
+                eventId:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Payment initiated successfully
+        "400":
+          description: Bad request
+
+  /payments/verify:
+    get:
+      tags:
+        - Payments
+      summary: Verify payment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reference
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment verified successfully
+
+  /tickets/my-tickets:
+    get:
+      tags:
+        - Tickets
+      summary: Get user's tickets
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Tickets retrieved successfully
+
+  /tickets/scan:
+    post:
+      tags:
+        - Tickets
+      summary: Scan ticket at event (Creator only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticketCode
+                - eventId
+              properties:
+                ticketCode:
+                  type: string
+                eventId:
+                  type: string
+      responses:
+        "200":
+          description: Ticket scanned successfully
+
+  /analytics/creator:
+    get:
+      tags:
+        - Analytics
+      summary: Get creator analytics (Creator only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analytics retrieved successfully
+
+  /notifications/reminders:
+    post:
+      tags:
+        - Notifications
+      summary: Create event reminder
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+                - remindBeforeDays
+                - remindBeforeHours
+              properties:
+                eventId:
+                  type: string
+                remindBeforeDays:
+                  type: integer
+                remindBeforeHours:
+                  type: integer
+      responses:
+        "201":
+          description: Reminder created successfully

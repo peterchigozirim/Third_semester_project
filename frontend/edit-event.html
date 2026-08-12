@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Edit Event - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="dashboard.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+					<div class="flex items-center gap-4">
+						<a
+							href="dashboard.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							>Dashboard</a
+						>
+						<button
+							id="logoutBtn"
+							class="text-gray-700 hover:text-primary-600 transition">
+							Logout
+						</button>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Main Content -->
+		<div class="mx-auto px-4 py-8 container">
+			<div class="mx-auto max-w-3xl">
+				<div class="mb-6">
+					<h1 class="font-bold text-gray-900 text-3xl">Edit Event</h1>
+					<p class="mt-2 text-gray-600">Update your event details</p>
+				</div>
+
+				<div id="formContainer">
+					<div class="py-12 text-center">
+						<div
+							class="inline-block border-4 border-gray-300 border-t-primary-600 rounded-full w-12 h-12 animate-spin"></div>
+						<p class="mt-4 text-gray-600">Loading event...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/config.js"></script>
+		<script src="js/main.js"></script>
+		<script src="js/auth.js"></script>
+		<script>
+			// Check authentication
+			requireAuth();
+
+			const user = getUser();
+			if (user && user.role !== "creator") {
+				window.location.href = "events.html";
+			}
+
+			// Logout handler
+			document.getElementById("logoutBtn").addEventListener("click", () => {
+				logout();
+			});
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const eventId = urlParams.get("id");
+
+			if (!eventId) {
+				window.location.href = "dashboard.html";
+			}
+
+			let eventData = null;
+
+			async function loadEvent() {
+				try {
+					const response = await apiCall(`${API_ENDPOINTS.events}/${eventId}`, {
+						headers: getAuthHeaders(),
+					});
+
+					eventData = response.data;
+
+					// Verify ownership
+					if (eventData.creator_id !== user.id) {
+						showToast("You don't have permission to edit this event", "error");
+						setTimeout(() => {
+							window.location.href = "dashboard.html";
+						}, 1000);
+						return;
+					}
+
+					// Format dates for datetime-local input
+					const startDate = new Date(
+						eventData.start_date || eventData.startDate,
+					);
+					const endDate = new Date(eventData.end_date || eventData.endDate);
+					const formattedStartDate = startDate.toISOString().slice(0, 16);
+					const formattedEndDate = endDate.toISOString().slice(0, 16);
+
+					document.getElementById("formContainer").innerHTML = `
+						<form id="editEventForm" class="card">
+							<!-- Event Title -->
+							<div class="mb-6">
+								<label class="block mb-2 font-medium text-gray-700">
+									Event Title *
+								</label>
+								<input
+									type="text"
+									id="title"
+									required
+									value="${eventData.title}"
+									class="input"
+									placeholder="e.g., Tech Conference 2026" />
+							</div>
+
+							<!-- Description -->
+							<div class="mb-6">
+								<label class="block mb-2 font-medium text-gray-700">
+									Description *
+								</label>
+								<textarea
+									id="description"
+									required
+									rows="5"
+									class="input"
+									placeholder="Describe your event...">${eventData.description}</textarea>
+							</div>
+
+							<!-- Category -->
+							<div class="mb-6">
+								<label class="block mb-2 font-medium text-gray-700">
+									Category *
+								</label>
+								<select id="category" required class="input">
+									<option value="">Select category</option>
+									<option value="conference" ${eventData.category === "conference" ? "selected" : ""}>Conference</option>
+									<option value="workshop" ${eventData.category === "workshop" ? "selected" : ""}>Workshop</option>
+									<option value="concert" ${eventData.category === "concert" ? "selected" : ""}>Concert</option>
+									<option value="sports" ${eventData.category === "sports" ? "selected" : ""}>Sports</option>
+									<option value="exhibition" ${eventData.category === "exhibition" ? "selected" : ""}>Exhibition</option>
+									<option value="networking" ${eventData.category === "networking" ? "selected" : ""}>Networking</option>
+									<option value="other" ${eventData.category === "other" ? "selected" : ""}>Other</option>
+								</select>
+							</div>
+
+							<!-- Date and Time -->
+							<div class="gap-6 grid grid-cols-1 md:grid-cols-2 mb-6">
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										Start Date & Time *
+									</label>
+									<input
+										type="datetime-local"
+										id="startDate"
+										required
+										value="${formattedStartDate}"
+										class="input" />
+								</div>
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										End Date & Time *
+									</label>
+									<input
+										type="datetime-local"
+										id="endDate"
+										required
+										value="${formattedEndDate}"
+										class="input" />
+								</div>
+							</div>
+
+							<!-- Venue and Address -->
+							<div class="gap-6 grid grid-cols-1 md:grid-cols-2 mb-6">
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										Venue Name *
+									</label>
+									<input
+										type="text"
+										id="venue"
+										required
+										value="${eventData.venue}"
+										class="input"
+										placeholder="e.g., Lagos Convention Centre" />
+								</div>
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										Address *
+									</label>
+									<input
+										type="text"
+										id="address"
+										required
+										value="${eventData.address}"
+										class="input"
+										placeholder="e.g., 1 Festival Road, Victoria Island" />
+								</div>
+							</div>
+
+							<!-- Pricing -->
+							<div class="gap-6 grid grid-cols-1 md:grid-cols-2 mb-6">
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										Ticket Price (₦) *
+									</label>
+									<input
+										type="number"
+										id="ticketPrice"
+										required
+										min="0"
+										value="${eventData.ticket_price || eventData.ticketPrice}"
+										class="input"
+										placeholder="0" />
+								</div>
+								<div>
+									<label class="block mb-2 font-medium text-gray-700">
+										Total Tickets *
+									</label>
+									<input
+										type="number"
+										id="totalTickets"
+										required
+										min="1"
+										value="${eventData.total_tickets || eventData.totalTickets}"
+										class="input"
+										placeholder="100" />
+									<p class="mt-1 text-gray-500 text-xs">
+										Current available: ${eventData.available_tickets || eventData.availableTickets}
+									</p>
+								</div>
+							</div>
+
+							<!-- Image URL -->
+							<div class="mb-6">
+								<label class="block mb-2 font-medium text-gray-700">
+									Event Image URL
+								</label>
+								<input
+									type="url"
+									id="imageUrl"
+									value="${eventData.imageUrl || eventData.image_url || ""}"
+									class="input"
+									placeholder="https://example.com/event-image.jpg" />
+								<p class="mt-1 text-gray-500 text-xs">
+									Optional: Add a URL to an image for your event
+								</p>
+							</div>
+
+							<!-- Action Buttons -->
+							<div class="flex gap-4">
+								<button
+									type="button"
+									onclick="window.location.href='dashboard.html'"
+									class="flex-1 py-3 text-gray-700 btn btn-secondary">
+									Cancel
+								</button>
+								<button
+									type="button"
+									onclick="deleteEvent()"
+									class="flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-lg text-white transition">
+									Delete Event
+								</button>
+								<button type="submit" id="submitBtn" class="flex-1 py-3 btn btn-primary">
+									Save Changes
+								</button>
+							</div>
+						</form>
+					`;
+
+					// Setup form handler
+					document
+						.getElementById("editEventForm")
+						.addEventListener("submit", handleSubmit);
+				} catch (error) {
+					document.getElementById("formContainer").innerHTML = `
+						<div class="py-12 text-center card">
+							<p class="text-red-600">Failed to load event</p>
+							<button onclick="window.location.href='dashboard.html'" class="mt-4 btn btn-primary">
+								Back to Dashboard
+							</button>
+						</div>
+					`;
+				}
+			}
+
+			async function handleSubmit(e) {
+				e.preventDefault();
+
+				const formData = {
+					title: document.getElementById("title").value,
+					description: document.getElementById("description").value,
+					category: document.getElementById("category").value,
+					venue: document.getElementById("venue").value,
+					address: document.getElementById("address").value,
+					startDate: document.getElementById("startDate").value,
+					endDate: document.getElementById("endDate").value,
+					ticketPrice: parseFloat(document.getElementById("ticketPrice").value),
+					totalTickets: parseInt(document.getElementById("totalTickets").value),
+					imageUrl: document.getElementById("imageUrl").value || null,
+				};
+
+				const submitBtn = document.getElementById("submitBtn");
+				submitBtn.textContent = "Saving...";
+				submitBtn.disabled = true;
+
+				try {
+					await apiCall(`${API_ENDPOINTS.events}/${eventId}`, {
+						method: "PUT",
+						headers: getAuthHeaders(),
+						body: JSON.stringify(formData),
+					});
+
+					showToast("Event updated successfully!", "success");
+
+					setTimeout(() => {
+						window.location.href = "dashboard.html";
+					}, 1000);
+				} catch (error) {
+					showToast(error.message || "Failed to update event", "error");
+					submitBtn.textContent = "Save Changes";
+					submitBtn.disabled = false;
+				}
+			}
+
+			async function deleteEvent() {
+				if (
+					!confirm(
+						"Are you sure you want to delete this event? This action cannot be undone.",
+					)
+				) {
+					return;
+				}
+
+				try {
+					await apiCall(`${API_ENDPOINTS.events}/${eventId}`, {
+						method: "DELETE",
+						headers: getAuthHeaders(),
+					});
+
+					showToast("Event deleted successfully", "success");
+
+					setTimeout(() => {
+						window.location.href = "dashboard.html";
+					}, 1000);
+				} catch (error) {
+					showToast(error.message || "Failed to delete event", "error");
+				}
+			}
+
+			loadEvent();
+		</script>
+	</body>
+</html>

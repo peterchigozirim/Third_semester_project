@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Browse Events - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="top-0 z-50 sticky bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="index.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+
+					<div class="hidden md:flex items-center space-x-8">
+						<a href="events.html" class="font-medium text-primary-600"
+							>Events</a
+						>
+						<a
+							href="login.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							id="loginLink"
+							>Login</a
+						>
+						<a href="register.html" class="btn btn-primary" id="registerLink"
+							>Get Started</a
+						>
+						<div id="userMenu" class="hidden">
+							<span id="userName" class="mr-4 text-gray-700"></span>
+							<a
+								href="dashboard.html"
+								class="mr-4 text-gray-700 hover:text-primary-600 transition"
+								id="dashboardLink"
+								>Dashboard</a
+							>
+							<button
+								onclick="logout()"
+								class="text-gray-700 hover:text-primary-600 transition">
+								Logout
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Page Header -->
+		<section
+			class="bg-gradient-to-r from-primary-600 to-primary-800 py-12 text-white">
+			<div class="mx-auto px-4 container">
+				<h1 class="font-bold text-4xl text-center">Discover Events</h1>
+				<p class="mt-2 text-primary-100 text-center">
+					Find your next unforgettable experience
+				</p>
+			</div>
+		</section>
+
+		<!-- Events Section -->
+		<section class="py-16">
+			<div class="mx-auto px-4 container">
+				<!-- Search and Filter -->
+				<div class="mb-8">
+					<div class="mx-auto max-w-2xl">
+						<input
+							type="text"
+							id="searchInput"
+							placeholder="Search events..."
+							class="input" />
+					</div>
+
+					<div
+						class="flex flex-wrap justify-center gap-3 mt-6"
+						id="categoryFilter">
+						<button class="category-btn active" data-category="">All</button>
+						<button class="category-btn" data-category="Concert">
+							Concert
+						</button>
+						<button class="category-btn" data-category="Conference">
+							Conference
+						</button>
+						<button class="category-btn" data-category="Theater">
+							Theater
+						</button>
+						<button class="category-btn" data-category="Sports">Sports</button>
+						<button class="category-btn" data-category="Food & Drink">
+							Food & Drink
+						</button>
+						<button class="category-btn" data-category="Workshop">
+							Workshop
+						</button>
+						<button class="category-btn" data-category="Party">Party</button>
+					</div>
+				</div>
+
+				<!-- Loading -->
+				<div id="loading" class="py-12 text-center">
+					<div
+						class="inline-block border-4 border-primary-600 border-t-transparent rounded-full w-12 h-12 animate-spin"></div>
+				</div>
+
+				<!-- Events Grid -->
+				<div
+					id="eventsGrid"
+					class="hidden gap-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"></div>
+
+				<!-- No Events -->
+				<div id="noEvents" class="hidden py-12 text-center">
+					<p class="text-gray-500 text-lg">No events found</p>
+				</div>
+			</div>
+		</section>
+
+		<script src="js/config.js"></script>
+		<script src="js/auth.js"></script>
+		<script src="js/main.js"></script>
+	</body>
+</html>

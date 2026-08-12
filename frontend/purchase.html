@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Purchase Ticket - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="index.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+					<span id="userNav"></span>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Main Content -->
+		<div class="mx-auto px-4 py-8 container">
+			<div class="mx-auto max-w-2xl">
+				<h1 class="mb-6 font-bold text-gray-900 text-3xl">Purchase Tickets</h1>
+
+				<div id="purchaseContent" class="card">
+					<div class="py-12 text-center">
+						<div
+							class="inline-block border-4 border-gray-300 border-t-primary-600 rounded-full w-12 h-12 animate-spin"></div>
+						<p class="mt-4 text-gray-600">Loading...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/config.js"></script>
+		<script src="js/main.js"></script>
+		<script src="js/auth.js"></script>
+		<script>
+			requireAuth();
+			updateUIForAuth();
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const eventId = urlParams.get("eventId");
+
+			if (!eventId) {
+				window.location.href = "events.html";
+			}
+
+			async function loadPurchaseForm() {
+				try {
+					const response = await apiCall(`${API_ENDPOINTS.events}/${eventId}`);
+					const event = response.data;
+
+					document.getElementById("purchaseContent").innerHTML = `
+						<!-- Event Summary -->
+						<div class="bg-gray-50 mb-6 p-4 rounded-lg">
+							<h2 class="mb-2 font-semibold text-gray-900 text-lg">${event.title}</h2>
+							<div class="space-y-1 text-gray-600 text-sm">
+								<p>📅 ${formatDateTime(event.date)}</p>
+								<p>📍 ${event.location}</p>
+								<p>💰 ${formatCurrency(event.price)} per ticket</p>
+							</div>
+						</div>
+
+						<!-- Purchase Form -->
+						<form id="purchaseForm">
+							<div class="mb-6">
+								<label class="block mb-2 font-medium text-gray-700">
+									Number of Tickets
+								</label>
+								<input
+									type="number"
+									id="quantity"
+									min="1"
+									max="10"
+									value="1"
+									required
+									class="input"
+									onchange="updateTotal()" />
+								<p class="mt-1 text-gray-500 text-xs">Maximum 10 tickets per purchase</p>
+							</div>
+
+							<div class="bg-primary-50 mb-6 p-4 rounded-lg">
+								<div class="flex justify-between items-center mb-2">
+									<span class="text-gray-700">Subtotal</span>
+									<span id="subtotal" class="font-semibold text-gray-900">${formatCurrency(event.price)}</span>
+								</div>
+								<div class="flex justify-between items-center">
+									<span class="font-semibold text-gray-900 text-lg">Total</span>
+									<span id="total" class="font-bold text-primary-600 text-2xl">${formatCurrency(event.price)}</span>
+								</div>
+							</div>
+
+							<button type="submit" id="submitBtn" class="py-3 w-full btn btn-primary">
+								Proceed to Payment
+							</button>
+						</form>
+					`;
+
+					// Store event data
+					window.eventData = event;
+
+					// Setup form handler
+					document
+						.getElementById("purchaseForm")
+						.addEventListener("submit", handlePurchase);
+				} catch (error) {
+					document.getElementById("purchaseContent").innerHTML = `
+						<div class="py-12 text-center">
+							<p class="text-red-600">Failed to load event details</p>
+							<button onclick="window.location.href='events.html'" class="mt-4 btn btn-primary">
+								Back to Events
+							</button>
+						</div>
+					`;
+				}
+			}
+
+			function updateTotal() {
+				const quantity =
+					parseInt(document.getElementById("quantity").value) || 1;
+				const price = window.eventData.price;
+				const subtotal = price * quantity;
+
+				document.getElementById("subtotal").textContent =
+					formatCurrency(subtotal);
+				document.getElementById("total").textContent = formatCurrency(subtotal);
+			}
+
+			async function handlePurchase(e) {
+				e.preventDefault();
+
+				const quantity = parseInt(document.getElementById("quantity").value);
+				const submitBtn = document.getElementById("submitBtn");
+
+				submitBtn.textContent = "Processing...";
+				submitBtn.disabled = true;
+
+				try {
+					const response = await apiCall(API_ENDPOINTS.payments, {
+						method: "POST",
+						headers: getAuthHeaders(),
+						body: JSON.stringify({
+							eventId: eventId,
+							quantity: quantity,
+						}),
+					});
+
+					if (response.data.authorizationUrl) {
+						// Redirect to Paystack payment page
+						window.location.href = response.data.authorizationUrl;
+					} else {
+						showToast("Payment initiated successfully", "success");
+						setTimeout(() => {
+							window.location.href = "my-tickets.html";
+						}, 1000);
+					}
+				} catch (error) {
+					showToast(error.message || "Payment failed", "error");
+					submitBtn.textContent = "Proceed to Payment";
+					submitBtn.disabled = false;
+				}
+			}
+
+			loadPurchaseForm();
+		</script>
+	</body>
+</html>
