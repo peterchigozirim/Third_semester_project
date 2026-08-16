@@ -168,7 +168,7 @@
 			</div>
 
 			<!-- Events List -->
-			<div class="card">
+			<div class="p-4 card">
 				<div class="flex justify-between items-center mb-6">
 					<h2 class="font-bold text-gray-900 text-xl">Your Events</h2>
 					<div class="flex gap-2">
@@ -248,21 +248,18 @@
 			// Load dashboard data
 			async function loadDashboard() {
 				try {
-					// Load events
+					// Load creator's events using dedicated endpoint
 					const eventsResponse = await apiCall(
-						API_ENDPOINTS.events + "?limit=100",
+						API_ENDPOINTS.events + "/my/events",
 						{
 							headers: getAuthHeaders(),
 						},
 					);
-					allEvents = eventsResponse.data.events || [];
 
-					// Filter to only show creator's events
-					const userId = user.id;
-					allEvents = allEvents.filter(
-						(event) =>
-							event.creator_id === userId || event.creatorId === userId,
-					);
+					// Handle different response formats
+					allEvents = eventsResponse.data.events || eventsResponse.data || [];
+
+					console.log("Loaded events:", allEvents);
 
 					// Update stats
 					updateStats();
@@ -278,7 +275,9 @@
 			function updateStats() {
 				const totalEvents = allEvents.length;
 				const activeEvents = allEvents.filter(
-					(event) => new Date(event.date) > new Date(),
+					(event) =>
+						new Date(event.start_date || event.startDate || event.date) >
+						new Date(),
 				).length;
 
 				// Calculate total tickets and revenue
@@ -286,9 +285,14 @@
 				let totalRevenue = 0;
 
 				allEvents.forEach((event) => {
-					totalTickets += event.ticket_count || event.ticketCount || 0;
-					totalRevenue +=
-						(event.ticket_count || event.ticketCount || 0) * (event.price || 0);
+					const ticketsSold =
+						(event.total_tickets || event.totalTickets || 0) -
+						(event.available_tickets || event.availableTickets || 0);
+					const ticketPrice =
+						event.ticket_price || event.ticketPrice || event.price || 0;
+
+					totalTickets += ticketsSold;
+					totalRevenue += ticketsSold * ticketPrice;
 				});
 
 				document.getElementById("totalEvents").textContent = totalEvents;
@@ -306,11 +310,15 @@
 
 				if (currentFilter === "upcoming") {
 					filteredEvents = allEvents.filter(
-						(event) => new Date(event.date) > new Date(),
+						(event) =>
+							new Date(event.start_date || event.startDate || event.date) >
+							new Date(),
 					);
 				} else if (currentFilter === "past") {
 					filteredEvents = allEvents.filter(
-						(event) => new Date(event.date) <= new Date(),
+						(event) =>
+							new Date(event.start_date || event.startDate || event.date) <=
+							new Date(),
 					);
 				}
 
@@ -323,16 +331,24 @@
 				noEvents.style.display = "none";
 
 				eventsList.innerHTML = filteredEvents
-					.map(
-						(event) => `
+					.map((event) => {
+						const eventDate = event.start_date || event.startDate || event.date;
+						const eventVenue = event.venue || event.location || "Online";
+						const ticketPrice =
+							event.ticket_price || event.ticketPrice || event.price || 0;
+						const ticketsSold =
+							(event.total_tickets || event.totalTickets || 0) -
+							(event.available_tickets || event.availableTickets || 0);
+
+						return `
 					<div class="flex justify-between items-center p-4 border border-gray-200 hover:border-primary-300 rounded-lg transition">
 						<div class="flex-1">
 							<h3 class="font-semibold text-gray-900 text-lg">${event.title}</h3>
 							<div class="flex gap-4 mt-2 text-gray-600 text-sm">
-								<span>📅 ${formatDate(event.date)}</span>
-								<span>📍 ${event.location || "Online"}</span>
-								<span>💰 ${formatCurrency(event.price)}</span>
-								<span>🎟️ ${event.ticket_count || event.ticketCount || 0} tickets sold</span>
+								<span>📅 ${formatDate(eventDate)}</span>
+								<span>📍 ${eventVenue}</span>
+								<span>💰 ${formatCurrency(ticketPrice)}</span>
+								<span>🎟️ ${ticketsSold} tickets sold</span>
 							</div>
 						</div>
 						<div class="flex gap-2">
@@ -348,8 +364,8 @@
 							</button>
 						</div>
 					</div>
-				`,
-					)
+				`;
+					})
 					.join("");
 			}
 

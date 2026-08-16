@@ -57,14 +57,26 @@
 					const response = await apiCall(`${API_ENDPOINTS.events}/${eventId}`);
 					const event = response.data;
 
+					// Map field names to handle both formats
+					const eventDate = event.start_date || event.startDate || event.date;
+					const eventVenue = event.venue || event.location;
+					const eventAddress = event.address || "";
+					const eventPrice =
+						event.ticket_price || event.ticketPrice || event.price || 0;
+					const availableTickets =
+						event.available_tickets || event.availableTickets || 0;
+
+					console.log("Purchase event data:", event); // Debug log
+
 					document.getElementById("purchaseContent").innerHTML = `
 						<!-- Event Summary -->
 						<div class="bg-gray-50 mb-6 p-4 rounded-lg">
 							<h2 class="mb-2 font-semibold text-gray-900 text-lg">${event.title}</h2>
 							<div class="space-y-1 text-gray-600 text-sm">
-								<p>📅 ${formatDateTime(event.date)}</p>
-								<p>📍 ${event.location}</p>
-								<p>💰 ${formatCurrency(event.price)} per ticket</p>
+								<p>📅 ${formatDateTime(eventDate)}</p>
+								<p>📍 ${eventVenue}${eventAddress ? ", " + eventAddress : ""}</p>
+								<p>💰 ${formatCurrency(eventPrice)} per ticket</p>
+								<p>🎟️ ${availableTickets} tickets available</p>
 							</div>
 						</div>
 
@@ -78,22 +90,22 @@
 									type="number"
 									id="quantity"
 									min="1"
-									max="10"
+									max="${Math.min(10, availableTickets)}"
 									value="1"
 									required
 									class="input"
 									onchange="updateTotal()" />
-								<p class="mt-1 text-gray-500 text-xs">Maximum 10 tickets per purchase</p>
+								<p class="mt-1 text-gray-500 text-xs">Maximum ${Math.min(10, availableTickets)} tickets per purchase</p>
 							</div>
 
 							<div class="bg-primary-50 mb-6 p-4 rounded-lg">
 								<div class="flex justify-between items-center mb-2">
 									<span class="text-gray-700">Subtotal</span>
-									<span id="subtotal" class="font-semibold text-gray-900">${formatCurrency(event.price)}</span>
+									<span id="subtotal" class="font-semibold text-gray-900">${formatCurrency(eventPrice)}</span>
 								</div>
 								<div class="flex justify-between items-center">
 									<span class="font-semibold text-gray-900 text-lg">Total</span>
-									<span id="total" class="font-bold text-primary-600 text-2xl">${formatCurrency(event.price)}</span>
+									<span id="total" class="font-bold text-primary-600 text-2xl">${formatCurrency(eventPrice)}</span>
 								</div>
 							</div>
 
@@ -103,8 +115,11 @@
 						</form>
 					`;
 
-					// Store event data
-					window.eventData = event;
+					// Store event data with mapped price
+					window.eventData = {
+						...event,
+						price: eventPrice,
+					};
 
 					// Setup form handler
 					document
@@ -143,7 +158,7 @@
 				submitBtn.disabled = true;
 
 				try {
-					const response = await apiCall(API_ENDPOINTS.payments, {
+					const response = await apiCall(API_ENDPOINTS.initiatePayment, {
 						method: "POST",
 						headers: getAuthHeaders(),
 						body: JSON.stringify({
