@@ -3,9 +3,6 @@ import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
-import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
-import path from "path";
 
 import { errorHandler } from "./middleware/errorHandler";
 import { notFoundHandler } from "./middleware/notFoundHandler";
@@ -54,14 +51,6 @@ app.get("/health", (_req, res) => {
 		uptime: process.uptime(),
 	});
 });
-
-// API Documentation
-try {
-	const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"));
-	app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-} catch (error) {
-	logger.warn("Swagger documentation not available");
-}
 
 // API Routes
 app.use("/api/v1/auth", authRoutes);
