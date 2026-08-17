@@ -58,7 +58,7 @@ app.get("/health", (_req, res) => {
 // API Documentation
 try {
 	const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"));
-	app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+	app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch (error) {
 	logger.warn("Swagger documentation not available");
 }
