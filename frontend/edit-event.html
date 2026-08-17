@@ -252,6 +252,24 @@
 								</p>
 							</div>
 
+							<!-- Publish Status -->
+							<div class="bg-blue-50 mb-6 p-4 border border-blue-200 rounded-lg">
+								<div class="flex justify-between items-center">
+									<div>
+										<label class="block font-medium text-gray-700">
+											Publish Event
+										</label>
+										<p class="mt-1 text-gray-600 text-sm">
+											${eventData.is_published || eventData.isPublished ? "This event is currently visible to the public" : "This event is currently hidden from the public"}
+										</p>
+									</div>
+									<label class="inline-flex relative items-center cursor-pointer">
+										<input type="checkbox" id="isPublished" class="sr-only peer" ${eventData.is_published || eventData.isPublished ? "checked" : ""}>
+										<div class="peer after:top-[2px] after:absolute bg-gray-200 after:bg-white peer-checked:bg-primary-600 after:border after:border-gray-300 peer-checked:after:border-white rounded-full after:rounded-full peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all rtl:peer-checked:after:-translate-x-full peer-checked:after:translate-x-full after:start-[2px]"></div>
+									</label>
+								</div>
+							</div>
+
 							<!-- Action Buttons -->
 							<div class="flex gap-4">
 								<button
@@ -303,6 +321,7 @@
 					ticketPrice: parseFloat(document.getElementById("ticketPrice").value),
 					totalTickets: parseInt(document.getElementById("totalTickets").value),
 					imageUrl: document.getElementById("imageUrl").value || null,
+					isPublished: document.getElementById("isPublished").checked,
 				};
 
 				const submitBtn = document.getElementById("submitBtn");

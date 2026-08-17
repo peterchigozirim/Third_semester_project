@@ -16,6 +16,7 @@ const API_ENDPOINTS = {
 	// Tickets
 	tickets: `${API_BASE_URL}/tickets`,
 	myTickets: `${API_BASE_URL}/tickets/my-tickets`,
+	eventTickets: (eventId) => `${API_BASE_URL}/tickets/event/${eventId}`,
 	scanTicket: `${API_BASE_URL}/tickets/scan`,
 
 	// Payments

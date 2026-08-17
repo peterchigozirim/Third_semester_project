@@ -19,6 +19,16 @@
 						>Eventful</a
 					>
 					<div class="flex items-center gap-4">
+						<a
+							href="events.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							>Events</a
+						>
+						<a
+							href="my-tickets.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							>My Tickets</a
+						>
 						<span id="userName" class="text-gray-700"></span>
 						<button
 							id="logoutBtn"
@@ -358,6 +368,11 @@
 								View
 							</button>
 							<button 
+								onclick="viewTickets('${event.id}')"
+								class="hover:bg-blue-50 px-4 py-2 border border-blue-300 rounded-lg text-blue-700 text-sm transition">
+								View Tickets
+							</button>
+							<button 
 								onclick="editEvent('${event.id}')"
 								class="bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-lg text-white text-sm transition">
 								Edit
@@ -378,11 +393,13 @@
 				window.location.href = `event-details.html?id=${id}`;
 			}
 
-			function editEvent(id) {
-				window.location.href = `edit-event.html?id=${id}`;
+			function viewTickets(id) {
+				window.location.href = `event-tickets.html?id=${id}`;
 			}
 
-			// Load dashboard on page load
+			function editEvent(id) {
+				window.location.href = `edit-event.html?id=${id}`;
+			} // Load dashboard on page load
 			loadDashboard();
 		</script>
 	</body>

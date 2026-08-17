@@ -23,6 +23,28 @@ export class TicketController {
 		}
 	}
 
+	async getEventTickets(req: AuthRequest, res: Response, next: NextFunction) {
+		try {
+			if (!req.user) {
+				throw new AppError("Authentication required", 401);
+			}
+
+			if (req.user.role !== "creator") {
+				throw new AppError("Only creators can view event tickets", 403);
+			}
+
+			const { eventId } = req.params;
+			const tickets = await ticketService.getEventTickets(eventId, req.user.id);
+
+			res.status(200).json({
+				status: "success",
+				data: tickets,
+			});
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	async getTicket(req: AuthRequest, res: Response, next: NextFunction) {
 		try {
 			if (!req.user) {

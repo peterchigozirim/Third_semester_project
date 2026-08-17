@@ -100,10 +100,14 @@ export class PaymentController {
 
 				// Redirect to frontend success page
 				const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
-				res.redirect(`${frontendUrl}/payment/success?reference=${reference}`);
+				res.redirect(
+					`${frontendUrl}/payment-success.html?reference=${reference}`,
+				);
 			} else {
 				const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
-				res.redirect(`${frontendUrl}/payment/failed?reference=${reference}`);
+				res.redirect(
+					`${frontendUrl}/payment-failed.html?reference=${reference}`,
+				);
 			}
 		} catch (error) {
 			next(error);

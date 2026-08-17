@@ -85,11 +85,14 @@
 
 			async function loadTickets() {
 				try {
-					const response = await apiCall(API_ENDPOINTS.tickets, {
+					const response = await apiCall(API_ENDPOINTS.myTickets, {
 						headers: getAuthHeaders(),
 					});
 
-					const tickets = response.data.tickets || response.data || [];
+					// The API returns data directly as an array
+					const tickets = Array.isArray(response.data)
+						? response.data
+						: response.data.tickets || [];
 
 					if (tickets.length === 0) {
 						document.getElementById("noTickets").style.display = "block";
@@ -99,70 +102,70 @@
 					console.log("Tickets data:", tickets); // Debug log
 
 					document.getElementById("ticketsList").innerHTML = tickets
-						.map(
-							(ticket) => {
-								// Map field names to handle both formats
-								const eventTitle = ticket.event_title || ticket.event?.title || "Event";
-								const eventDate = ticket.start_date || ticket.event?.date || ticket.eventDate;
-								const eventVenue = ticket.venue || ticket.event?.location || "Location TBA";
-								const ticketCode = ticket.ticket_code || ticket.ticketNumber;
-								const qrCode = ticket.qr_code || ticket.qrCode;
+						.map((ticket) => {
+							// Map field names to handle both formats
+							const eventTitle =
+								ticket.event_title || ticket.event?.title || "Event";
+							const eventDate =
+								ticket.start_date || ticket.event?.date || ticket.eventDate;
+							const eventVenue =
+								ticket.venue || ticket.event?.location || "Location TBA";
+							const ticketCode = ticket.ticket_code || ticket.ticketNumber;
+							const qrCode = ticket.qr_code || ticket.qrCode;
 
-								return `
-						<div class="card">
-							<div class="mb-4">
-								<h3 class="font-semibold text-gray-900 text-lg">${eventTitle}</h3>
-								<p class="mt-1 text-gray-600 text-sm">${formatDateTime(eventDate)}</p>
-							</div>
-
-							<div class="space-y-2 mb-4 text-gray-600 text-sm">
-								<p>📍 ${eventVenue}${ticket.address ? ', ' + ticket.address : ''}</p>
-								<p>🎟️ Ticket #${ticketCode}</p>
-								<p>🎫 Category: ${ticket.category || 'General'}</p>
-								<p class="flex items-center gap-2">
-									Status:
-									<span class="px-2 py-1 rounded text-xs ${
-										ticket.is_scanned
-											? "bg-gray-100 text-gray-800"
-											: "bg-green-100 text-green-800"
-									}">
-										${ticket.is_scanned ? 'Used' : 'Valid'}
-									</span>
-								</p>
-							</div>
-
-							${
-								qrCode
-									? `
-								<div class="bg-gray-50 mb-4 p-4 border-2 border-gray-200 rounded-lg text-center">
-									<p class="mb-2 font-semibold text-gray-700 text-sm">Scan at Venue</p>
-									<img src="${qrCode}" alt="QR Code" class="mx-auto rounded w-48 h-48" />
+							return `
+							<div class="card">
+								<div class="mb-4">
+									<h3 class="font-semibold text-gray-900 text-lg">${eventTitle}</h3>
+									<p class="mt-1 text-gray-600 text-sm">${formatDateTime(eventDate)}</p>
 								</div>
-							`
-									: `
-								<div class="bg-yellow-50 mb-4 p-4 rounded-lg text-center">
-									<p class="text-yellow-700 text-sm">⚠️ QR Code not available</p>
-								</div>
-							`
-							}`
-							})
-						.join("");
 
-							<div class="flex gap-2">
-								<button
-									onclick="downloadTicket('${ticket.id}')"
-									class="flex-1 py-2 text-sm btn btn-secondary">
-									Download
-								</button>
-								<button
-									onclick="viewTicket('${ticket.id}')"
-									class="flex-1 py-2 text-sm btn btn-primary">
-									View Details
-								</button>
+								<div class="space-y-2 mb-4 text-gray-600 text-sm">
+									<p>📍 ${eventVenue}${ticket.address ? ", " + ticket.address : ""}</p>
+									<p>🎟️ Ticket #${ticketCode}</p>
+									<p>🎫 Category: ${ticket.category || "General"}</p>
+									<p class="flex items-center gap-2">
+										Status:
+										<span class="px-2 py-1 rounded text-xs ${
+											ticket.is_scanned
+												? "bg-gray-100 text-gray-800"
+												: "bg-green-100 text-green-800"
+										}">
+											${ticket.is_scanned ? "Used" : "Valid"}
+										</span>
+									</p>
+								</div>
+
+								${
+									qrCode
+										? `
+									<div class="bg-gray-50 mb-4 p-4 border-2 border-gray-200 rounded-lg text-center">
+										<p class="mb-2 font-semibold text-gray-700 text-sm">Scan at Venue</p>
+										<img src="${qrCode}" alt="QR Code" class="mx-auto rounded w-48 h-48" />
+									</div>
+								`
+										: `
+									<div class="bg-yellow-50 mb-4 p-4 rounded-lg text-center">
+										<p class="text-yellow-700 text-sm">⚠️ QR Code not available</p>
+									</div>
+								`
+								}
+
+								<div class="flex gap-2">
+									<button
+										onclick="downloadTicket('${ticket.id}')"
+										class="flex-1 py-2 text-sm btn btn-secondary">
+										Download
+									</button>
+									<button
+										onclick="viewTicket('${ticket.id}')"
+										class="flex-1 py-2 text-sm btn btn-primary">
+										View Details
+									</button>
+								</div>
 							</div>
-						</div>
-					`,
-						)
+						`;
+						})
 						.join("");
 				} catch (error) {
 					console.error("Error loading tickets:", error);

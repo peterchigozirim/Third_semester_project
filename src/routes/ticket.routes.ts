@@ -19,6 +19,13 @@ router.get(
 );
 
 // Protected routes - Creators only
+router.get(
+	"/event/:eventId",
+	authenticate,
+	authorize("creator"),
+	ticketController.getEventTickets.bind(ticketController),
+);
+
 router.post(
 	"/scan",
 	authenticate,

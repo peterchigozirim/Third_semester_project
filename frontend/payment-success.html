@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Payment Successful - Eventful</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-md">
+			<div class="mx-auto px-4 container">
+				<div class="flex justify-between items-center h-16">
+					<a href="index.html" class="font-bold text-primary-600 text-2xl"
+						>Eventful</a
+					>
+					<div class="flex items-center gap-4">
+						<a
+							href="events.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							>Events</a
+						>
+						<a
+							href="my-tickets.html"
+							class="text-gray-700 hover:text-primary-600 transition"
+							>My Tickets</a
+						>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Main Content -->
+		<div class="flex justify-center items-center px-4 py-16 min-h-screen">
+			<div class="mx-auto w-full max-w-2xl">
+				<!-- Loading State -->
+				<div id="loadingState" class="text-center">
+					<div
+						class="inline-block border-4 border-gray-300 border-t-primary-600 rounded-full w-16 h-16 animate-spin"></div>
+					<p class="mt-4 text-gray-600 text-lg">Verifying your payment...</p>
+				</div>
+
+				<!-- Success State -->
+				<div id="successState" class="hidden text-center card">
+					<!-- Success Icon -->
+					<div class="flex justify-center mb-6">
+						<div
+							class="flex justify-center items-center bg-green-100 rounded-full w-20 h-20">
+							<svg
+								class="w-12 h-12 text-green-600"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"></path>
+							</svg>
+						</div>
+					</div>
+
+					<h1 class="mb-4 font-bold text-gray-900 text-3xl">
+						Payment Successful!
+					</h1>
+					<p class="mb-6 text-gray-600 text-lg">
+						Your ticket has been generated and sent to your email.
+					</p>
+
+					<!-- Payment Details -->
+					<div class="bg-gray-50 mb-6 p-6 rounded-lg text-left">
+						<h2 class="mb-4 font-semibold text-gray-900 text-xl">
+							Payment Details
+						</h2>
+						<div class="space-y-3">
+							<div class="flex justify-between">
+								<span class="text-gray-600">Reference:</span>
+								<span
+									id="paymentRef"
+									class="font-mono font-semibold text-gray-900"
+									>-</span
+								>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Event:</span>
+								<span id="eventName" class="font-semibold text-gray-900"
+									>-</span
+								>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Amount Paid:</span>
+								<span id="amount" class="font-semibold text-gray-900">-</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-600">Status:</span>
+								<span
+									class="bg-green-100 px-3 py-1 rounded-full font-semibold text-green-800 text-sm"
+									>Successful</span
+								>
+							</div>
+						</div>
+					</div>
+
+					<!-- Ticket Information -->
+					<div class="bg-blue-50 mb-6 p-6 border border-blue-200 rounded-lg">
+						<div class="flex items-start gap-3">
+							<svg
+								class="flex-shrink-0 mt-1 w-6 h-6 text-blue-600"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							<div class="text-left">
+								<h3 class="mb-1 font-semibold text-blue-900">
+									Your Ticket is Ready!
+								</h3>
+								<p class="text-blue-800 text-sm">
+									Your ticket with QR code has been sent to your email. You can
+									also view and download it from your tickets page.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="flex sm:flex-row flex-col gap-4">
+						<a href="my-tickets.html" class="flex-1 py-3 btn btn-primary">
+							View My Tickets
+						</a>
+						<a
+							href="events.html"
+							class="flex-1 py-3 text-gray-700 btn btn-secondary">
+							Browse More Events
+						</a>
+					</div>
+
+					<!-- Download Receipt -->
+					<button
+						onclick="downloadReceipt()"
+						class="mt-4 text-primary-600 hover:text-primary-700 underline">
+						Download Receipt
+					</button>
+				</div>
+
+				<!-- Error State -->
+				<div id="errorState" class="hidden text-center card">
+					<div class="flex justify-center mb-6">
+						<div
+							class="flex justify-center items-center bg-red-100 rounded-full w-20 h-20">
+							<svg
+								class="w-12 h-12 text-red-600"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"></path>
+							</svg>
+						</div>
+					</div>
+
+					<h1 class="mb-4 font-bold text-gray-900 text-3xl">
+						Verification Failed
+					</h1>
+					<p class="mb-6 text-gray-600 text-lg" id="errorMessage">
+						We couldn't verify your payment. Please contact support if you've
+						been charged.
+					</p>
+
+					<div class="flex flex-col gap-4">
+						<a href="my-tickets.html" class="py-3 btn btn-primary">
+							Check My Tickets
+						</a>
+						<a href="events.html" class="py-3 text-gray-700 btn btn-secondary">
+							Back to Events
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/config.js"></script>
+		<script src="js/main.js"></script>
+		<script src="js/auth.js"></script>
+		<script>
+			const urlParams = new URLSearchParams(window.location.search);
+			const reference = urlParams.get("reference");
+
+			const loadingState = document.getElementById("loadingState");
+			const successState = document.getElementById("successState");
+			const errorState = document.getElementById("errorState");
+
+			let paymentData = null;
+
+			async function verifyPayment() {
+				if (!reference) {
+					showError("No payment reference provided");
+					return;
+				}
+
+				try {
+					// Verify payment
+					const response = await apiCall(
+						`${API_ENDPOINTS.verifyPayment}?reference=${reference}`,
+						{
+							headers: getAuthHeaders(),
+						},
+					);
+
+					paymentData = response.data;
+
+					// Show success state
+					loadingState.classList.add("hidden");
+					successState.classList.remove("hidden");
+
+					// Display payment details
+					document.getElementById("paymentRef").textContent =
+						paymentData.payment.reference;
+					document.getElementById("amount").textContent = formatCurrency(
+						parseFloat(paymentData.payment.amount),
+					);
+
+					// Fetch event details
+					try {
+						const eventResponse = await apiCall(
+							`${API_ENDPOINTS.events}/${paymentData.payment.event_id}`,
+						);
+						document.getElementById("eventName").textContent =
+							eventResponse.data.title;
+					} catch (e) {
+						document.getElementById("eventName").textContent = "Event";
+					}
+
+					// Show success toast
+					showToast("Payment verified successfully!", "success");
+				} catch (error) {
+					showError(
+						error.message ||
+							"Failed to verify payment. Please contact support.",
+					);
+				}
+			}
+
+			function showError(message) {
+				loadingState.classList.add("hidden");
+				errorState.classList.remove("hidden");
+				document.getElementById("errorMessage").textContent = message;
+			}
+
+			function downloadReceipt() {
+				if (!paymentData) return;
+
+				const receipt = `
+EVENTFUL - PAYMENT RECEIPT
+================================
+
+Reference: ${paymentData.payment.reference}
+Amount: ${formatCurrency(parseFloat(paymentData.payment.amount))}
+Status: ${paymentData.payment.payment_status}
+Date: ${new Date(paymentData.payment.created_at).toLocaleString()}
+
+Event: ${document.getElementById("eventName").textContent}
+
+================================
+Thank you for your purchase!
+Visit: https://eventful.com
+				`;
+
+				const blob = new Blob([receipt], { type: "text/plain" });
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = `receipt-${paymentData.payment.reference}.txt`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				window.URL.revokeObjectURL(url);
+
+				showToast("Receipt downloaded!", "success");
+			}
+
+			// Start verification
+			verifyPayment();
+		</script>
+	</body>
+</html>
