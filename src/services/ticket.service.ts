@@ -93,6 +93,41 @@ export class TicketService {
 		return tickets || [];
 	}
 
+	async getEventTickets(eventId: string, creatorId: string): Promise<any[]> {
+		// First verify the event belongs to the creator
+		const event = await db.oneOrNone(
+			"SELECT id FROM events WHERE id = $1 AND creator_id = $2",
+			[eventId, creatorId],
+		);
+
+		if (!event) {
+			throw new AppError(
+				"Event not found or you don't have permission to view these tickets",
+				404,
+			);
+		}
+
+		// Get all tickets for this event with user information
+		const tickets = await db.manyOrNone(
+			`SELECT 
+        t.*,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        p.amount as paid_amount,
+        p.payment_status,
+        p.created_at as payment_date
+       FROM tickets t
+       JOIN users u ON t.user_id = u.id
+       LEFT JOIN payments p ON p.ticket_id = t.id
+       WHERE t.event_id = $1
+       ORDER BY t.created_at DESC`,
+			[eventId],
+		);
+		return tickets || [];
+	}
+
 	async getTicket(ticketId: string, userId: string): Promise<Ticket> {
 		const ticket = await db.oneOrNone<Ticket>(
 			"SELECT * FROM tickets WHERE id = $1 AND user_id = $2",
