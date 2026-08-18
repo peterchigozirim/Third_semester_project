@@ -27,34 +27,34 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-	? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-	: ["http://localhost:3001"];
+// const allowedOrigins = process.env.ALLOWED_ORIGINS
+// 	? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+// 	: ["http://localhost:3001"];
 
-app.use(
-	cors({
-		origin: (origin, callback) => {
-			if (!origin) return callback(null, true);
-			if (allowedOrigins.includes(origin)) {
-				callback(null, origin); // return single matched origin only
-			} else {
-				callback(new Error(`CORS blocked: ${origin}`));
-			}
-		},
-		credentials: true,
-		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-		allowedHeaders: ["Content-Type", "Authorization"],
-	}),
-);
+// app.use(
+// 	cors({
+// 		origin: (origin, callback) => {
+// 			if (!origin) return callback(null, true);
+// 			if (allowedOrigins.includes(origin)) {
+// 				callback(null, origin); // return single matched origin only
+// 			} else {
+// 				callback(new Error(`CORS blocked: ${origin}`));
+// 			}
+// 		},
+// 		credentials: true,
+// 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+// 		allowedHeaders: ["Content-Type", "Authorization"],
+// 	}),
+// );
 
-// Logging
-app.use(
-	morgan("combined", {
-		stream: {
-			write: (message: string) => logger.info(message.trim()),
-		},
-	}),
-);
+// // Logging
+// app.use(
+// 	morgan("combined", {
+// 		stream: {
+// 			write: (message: string) => logger.info(message.trim()),
+// 		},
+// 	}),
+// );
 
 // Body parsing
 app.use(express.json());
