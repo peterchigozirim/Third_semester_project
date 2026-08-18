@@ -26,10 +26,41 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+	? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+	: ["http://localhost:3001"];
+
 app.use(
 	cors({
-		origin: process.env.FRONTEND_URL || "*",
+		origin: (origin, callback) => {
+			// Allow requests with no origin (mobile apps, curl, Postman)
+			if (!origin) return callback(null, true);
+
+			if (allowedOrigins.includes(origin)) {
+				callback(null, origin); // ✅ Return single origin, not array
+			} else {
+				callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+			}
+		},
 		credentials: true,
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization"],
+	}),
+	cors({
+		origin: (origin, callback) => {
+			// Allow requests with no origin (mobile apps, curl, Postman)
+			if (!origin) return callback(null, true);
+
+			if (allowedOrigins.includes(origin)) {
+				callback(null, origin); // ✅ Return single origin, not array
+			} else {
+				callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+			}
+		},
+		credentials: true,
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization"],
 	}),
 );
 
