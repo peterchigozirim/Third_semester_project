@@ -26,35 +26,35 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+	.split(",")
+	.map((origin) => origin.trim());
 
-// const allowedOrigins = process.env.ALLOWED_ORIGINS
-// 	? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-// 	: ["http://localhost:3001"];
+app.use(
+	cors({
+		origin: (origin, callback) => {
+			// Allow requests with no origin (like mobile apps, curl, Postman)
+			if (!origin) return callback(null, true);
 
-// app.use(
-// 	cors({
-// 		origin: (origin, callback) => {
-// 			if (!origin) return callback(null, true);
-// 			if (allowedOrigins.includes(origin)) {
-// 				callback(null, origin); // return single matched origin only
-// 			} else {
-// 				callback(new Error(`CORS blocked: ${origin}`));
-// 			}
-// 		},
-// 		credentials: true,
-// 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-// 		allowedHeaders: ["Content-Type", "Authorization"],
-// 	}),
-// );
+			if (allowedOrigins.includes(origin)) {
+				return callback(null, true);
+			}
 
-// // Logging
-// app.use(
-// 	morgan("combined", {
-// 		stream: {
-// 			write: (message: string) => logger.info(message.trim()),
-// 		},
-// 	}),
-// );
+			logger.warn(`CORS blocked request from origin: ${origin}`);
+			return callback(new Error("Not allowed by CORS"));
+		},
+		credentials: true,
+	}),
+);
+
+// Logging
+app.use(
+	morgan("combined", {
+		stream: {
+			write: (message: string) => logger.info(message.trim()),
+		},
+	}),
+);
 
 // Body parsing
 app.use(express.json());
